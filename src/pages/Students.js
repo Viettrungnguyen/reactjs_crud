@@ -25,16 +25,16 @@ function Student() {
         <td>{item.id}</td>
         <td>{item.name}</td>
         <td>{item.email}</td>
-        <td>{`${item.address.street} - ${item.address.suite} - ${item.address.city}`}</td>
         <td>{item.phone}</td>
+        <td>{`${item.address.street} - ${item.address.suite} - ${item.address.city}`}</td>
         <td>{item.company.name}</td>
         <td>
-          <Link to="/" className="btn btn-success">
+          <Link to="/students/create" className="btn btn-success">
             Edit
           </Link>
         </td>
         <td>
-          <Link to="/" className="btn btn-danger">
+          <Link to="/students/delete" className="btn btn-danger">
             Delete
           </Link>
         </td>
@@ -50,7 +50,10 @@ function Student() {
             <div className="card-header">
               <h4>
                 Student List
-                <Link to="/" className="btn btn-primary float-end">
+                <Link
+                  to="/students/create"
+                  className="btn btn-primary float-end"
+                >
                   Add Student
                 </Link>
               </h4>
