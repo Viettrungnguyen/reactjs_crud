@@ -121,7 +121,7 @@ function UserCreate() {
         },
       })
       .then((res) => {
-        localStorage.setItem("create_user", true);
+        localStorage.setItem("update_user", true);
         setOpen(true);
         navigate("/users");
       })

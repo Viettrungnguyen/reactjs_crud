@@ -21,6 +21,7 @@ function User() {
   const [users, setUsers] = useState([]);
 
   const [createUser, setCreateUser] = useState(false);
+  const [updateUser, setUpdateUser] = useState(false);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
 
@@ -48,6 +49,7 @@ function User() {
       return;
     }
     setCreateUser(false);
+    setUpdateUser(false);
     setOpen(false);
   };
 
@@ -129,6 +131,8 @@ function User() {
       });
     setCreateUser(localStorage.getItem("create_user") === "true");
     localStorage.setItem("create_user", false);
+    setUpdateUser(localStorage.getItem("update_user") === "true");
+    localStorage.setItem("udpate_user", false);
   }, []);
 
   if (loading) {
@@ -144,6 +148,11 @@ function User() {
       <Snackbar open={createUser} autoHideDuration={2500} onClose={handleClose}>
         <Alert onClose={handleClose} severity="success" sx={{ width: "100%" }}>
           Create user Success!
+        </Alert>
+      </Snackbar>
+      <Snackbar open={updateUser} autoHideDuration={2500} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="success" sx={{ width: "100%" }}>
+          Update user Success!
         </Alert>
       </Snackbar>
       <Paper sx={{ width: "100%", overflow: "hidden" }}>
