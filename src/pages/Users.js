@@ -22,6 +22,7 @@ function User() {
 
   const [createUser, setCreateUser] = useState(false);
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState("");
 
   const columns = [
     { id: "id", label: "ID", minWidth: 50 },
@@ -47,6 +48,31 @@ function User() {
       return;
     }
     setCreateUser(false);
+    setOpen(false);
+  };
+
+  const handleClickOpenConfirmDelete = (id, index) => {
+    axios
+      .post(
+        `http://127.0.0.1:8000/api/users/delete`,
+        { id },
+        {
+          headers: {
+            Authorization: `bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      )
+      .then(() => {
+        const updatedUsers = [...users];
+        updatedUsers.splice(index, 1);
+        setUsers(updatedUsers);
+        setOpen(true);
+        setError("User deleted successfully.");
+      })
+      .catch((e) => {
+        setOpen(true);
+        setError(e.response.data.message);
+      });
   };
 
   useEffect(() => {
@@ -105,26 +131,16 @@ function User() {
     localStorage.setItem("create_user", false);
   }, []);
 
-  const handleClickOpenConfirmDelete = (id, index) => {
-    users.slice(index, 1);
-    axios
-      .post(
-        `http://127.0.0.1:8000/api/users/delete`,
-        { id },
-        {
-          headers: {
-            Authorization: `bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      )
-      .then();
-  };
-
   if (loading) {
     return <Loading />;
   }
   return (
     <>
+      <Snackbar open={open} autoHideDuration={2500} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="error" sx={{ width: "100%" }}>
+          {error}
+        </Alert>
+      </Snackbar>
       <Snackbar open={createUser} autoHideDuration={2500} onClose={handleClose}>
         <Alert onClose={handleClose} severity="success" sx={{ width: "100%" }}>
           Create user Success!

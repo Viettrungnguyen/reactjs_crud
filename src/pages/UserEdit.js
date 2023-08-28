@@ -19,16 +19,18 @@ import { useNavigate, useParams } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Snackbar from "@mui/material/Snackbar";
 import { Typography } from "@mui/material";
+import { deDE } from "@mui/x-date-pickers";
 
 function UserCreate() {
   const params = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [name, setName] = useState();
-  const [status, setStatus] = useState([]);
+
+  const [name, setName] = useState("");
+  const [status, setStatus] = useState(0);
   const [roles, setRoles] = useState([]);
-  const [val, setVal] = useState({});
-  const [email, setEmail] = useState();
+  const [val, setVal] = useState([]);
+  const [email, setEmail] = useState("");
   const [joinDate, setJoinDate] = useState("2022-04-17");
   const [error, setError] = useState("");
 
@@ -77,15 +79,16 @@ function UserCreate() {
         },
       })
       .then((res) => {
-        setName(res.data.data.name);
-        setEmail(res.data.data.email);
-        setRoles(res.data.data.role_ids);
-        setStatus(res.data.data.status);
-        setJoinDate(res.data.data.joinDate);
-        setLoading(false);
+        const user = res.data.data;
+        setName(user.name);
+        setEmail(user.email);
+        setRoles(user.role_ids);
+        setStatus(user.status);
+        setJoinDate(user.join_date);
         setVal(
           roles.map((role) => listRoles.find((value) => value.value === role))
         );
+        setLoading(false);
       });
   }, []);
 
@@ -108,7 +111,7 @@ function UserCreate() {
       name,
       email,
       status,
-      roles: roles.map((role) => role.value),
+      roles,
       join_date: joinDate,
     };
     axios
@@ -175,7 +178,9 @@ function UserCreate() {
           id="roles"
           value={val}
           options={listRoles}
-          onChange={(event, newValue) => setRoles(newValue)}
+          onChange={(event, newValue) =>
+            setRoles(newValue.map((role) => role.value))
+          }
           renderInput={(params) => (
             <TextField {...params} label="Role" placeholder="Choose roles" />
           )}
@@ -187,6 +192,7 @@ function UserCreate() {
             row
             aria-labelledby="status"
             name="user-status"
+            value={status}
             onChange={(event) => setStatus(event.target.value)}
           >
             {listStatus.map((item, index) => {
