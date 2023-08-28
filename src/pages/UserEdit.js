@@ -15,18 +15,19 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import Button from "@mui/material/Button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Snackbar from "@mui/material/Snackbar";
 import { Typography } from "@mui/material";
 
 function UserCreate() {
+  const params = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState();
-  const [password, setPassword] = useState();
   const [status, setStatus] = useState([]);
   const [roles, setRoles] = useState([]);
+  const [val, setVal] = useState({});
   const [email, setEmail] = useState();
   const [joinDate, setJoinDate] = useState("2022-04-17");
   const [error, setError] = useState("");
@@ -68,7 +69,31 @@ function UserCreate() {
         setListRoles(roles);
         setLoading(false);
       });
+
+    axios
+      .get(`http://127.0.0.1:8000/api/users/${params.id}`, {
+        headers: {
+          Authorization: `bearer ${localStorage.getItem("token")}`,
+        },
+      })
+      .then((res) => {
+        setName(res.data.data.name);
+        setEmail(res.data.data.email);
+        setRoles(res.data.data.role_ids);
+        setStatus(res.data.data.status);
+        setJoinDate(res.data.data.joinDate);
+        setLoading(false);
+        setVal(
+          roles.map((role) => listRoles.find((value) => value.value === role))
+        );
+      });
   }, []);
+
+  useEffect(() => {
+    setVal(
+      roles.map((role) => listRoles.find((value) => value.value === role))
+    );
+  }, [listRoles, roles]);
 
   const handleClose = (event, reason) => {
     if (reason === "clickaway") {
@@ -78,17 +103,16 @@ function UserCreate() {
     setOpen(false);
   };
 
-  const SaveUser = () => {
+  const UpdateUser = () => {
     const data = {
       name,
       email,
-      password,
       status,
       roles: roles.map((role) => role.value),
       join_date: joinDate,
     };
     axios
-      .post(`http://127.0.0.1:8000/api/users`, data, {
+      .post(`http://127.0.0.1:8000/api/users/${params.id}`, data, {
         headers: {
           Authorization: `bearer ${localStorage.getItem("token")}`,
         },
@@ -127,32 +151,29 @@ function UserCreate() {
         autoComplete="off"
       >
         <Typography variant="h1" textAlign="center" gutterBottom>
-          Create User
+          Edit User
         </Typography>
         <TextField
           id="name"
           label="Name"
+          value={name}
+          InputLabelProps={{ shrink: true }}
           onChange={(event) => setName(event.target.value)}
           variant="outlined"
         />
         <TextField
           id="email"
           label="Email"
+          value={email}
+          InputLabelProps={{ shrink: true }}
           onChange={(event) => setEmail(event.target.value)}
           variant="outlined"
-        />
-
-        <TextField
-          id="outlined-password-input"
-          label="Password"
-          type="password"
-          autoComplete="current-password"
-          onChange={(event) => setPassword(event.target.value)}
         />
 
         <Autocomplete
           multiple
           id="roles"
+          value={val}
           options={listRoles}
           onChange={(event, newValue) => setRoles(newValue)}
           renderInput={(params) => (
@@ -186,6 +207,7 @@ function UserCreate() {
             <DatePicker
               label="Join Date"
               value={dayjs(joinDate)}
+              InputLabelProps={{ shrink: true }}
               format="YYYY-MM-DD"
               onChange={(newValue) =>
                 setJoinDate(newValue.format("YYYY-MM-DD"))
@@ -193,7 +215,7 @@ function UserCreate() {
             />
           </DemoContainer>
         </LocalizationProvider>
-        <Button variant="contained" onClick={() => SaveUser()}>
+        <Button variant="contained" onClick={() => UpdateUser()}>
           Save User
         </Button>
       </Stack>

@@ -21,6 +21,7 @@ function User() {
   const [users, setUsers] = useState([]);
 
   const [createUser, setCreateUser] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const columns = [
     { id: "id", label: "ID", minWidth: 50 },
@@ -29,6 +30,7 @@ function User() {
     { id: "role", label: "Role", maxWidth: 100 },
     { id: "email", label: "Email", minWidth: 100 },
     { id: "phone", label: "Phone", minWidth: 100 },
+    { id: "action", label: "action", minWidth: 100 },
   ];
 
   const handleChangePage = (event, newPage) => {
@@ -64,7 +66,7 @@ function User() {
         },
       })
       .then((res) => {
-        const users = res.data.data.data.map((user) => {
+        const users = res.data.data.data.map((user, index) => {
           return {
             id: user.id,
             name: user.name,
@@ -78,6 +80,22 @@ function User() {
             }),
             email: user?.email,
             phone: user?.phone_number,
+            action: (
+              <div key={index}>
+                <Link to={`/users/${user.id}`}>
+                  <Button variant="contained" color="success" sx={{ mr: 1 }}>
+                    Edit
+                  </Button>
+                </Link>
+                <Button
+                  variant="contained"
+                  color="error"
+                  onClick={() => handleClickOpenConfirmDelete(user.id, index)}
+                >
+                  Delete
+                </Button>
+              </div>
+            ),
           };
         });
         setUsers(users);
@@ -86,6 +104,21 @@ function User() {
     setCreateUser(localStorage.getItem("create_user") === "true");
     localStorage.setItem("create_user", false);
   }, []);
+
+  const handleClickOpenConfirmDelete = (id, index) => {
+    users.slice(index, 1);
+    axios
+      .post(
+        `http://127.0.0.1:8000/api/users/delete`,
+        { id },
+        {
+          headers: {
+            Authorization: `bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      )
+      .then();
+  };
 
   if (loading) {
     return <Loading />;
