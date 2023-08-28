@@ -4,6 +4,7 @@ import Contact from "../pages/Contact";
 import About from "../pages/About";
 import User from "../pages/Users";
 import UserCreate from "../pages/UserCreate";
+import Test from "../pages/Test";
 function MyRouter() {
   return (
     <Routes>
@@ -12,6 +13,7 @@ function MyRouter() {
       <Route path="/contact-us" element={<Contact />} />
       <Route path="/users" element={<User />} />
       <Route path="/users/create" element={<UserCreate />} />
+      <Route path="/test" element={<Test />} />
     </Routes>
   );
 }

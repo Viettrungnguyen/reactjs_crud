@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-// import { Link } from "react-router-dom";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -10,12 +9,18 @@ import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import axios from "axios";
 import Loading from "../components/Loading";
+import Button from "@mui/material/Button";
+import { Link } from "react-router-dom";
+import { Alert, Grid } from "@mui/material";
+import { Snackbar } from "@mui/material";
 
 function User() {
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(25);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
+
+  const [createUser, setCreateUser] = useState(false);
 
   const columns = [
     { id: "id", label: "ID", minWidth: 50 },
@@ -35,8 +40,12 @@ function User() {
     setPage(0);
   };
 
-  const rows = users;
-  console.log(rows);
+  const handleClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setCreateUser(false);
+  };
 
   useEffect(() => {
     axios
@@ -74,96 +83,77 @@ function User() {
         setUsers(users);
         setLoading(false);
       });
+    setCreateUser(localStorage.getItem("create_user") === "true");
+    localStorage.setItem("create_user", false);
   }, []);
 
   if (loading) {
     return <Loading />;
   }
-
-  // var UserDetails = "";
-  // UserDetails = users.map((item, index) => {
-  //   return (
-  //     <tr key={index}>
-  //       <td>{item.id}</td>
-  //       <td>{item.name}</td>
-  //       <td>{item?.division?.name}</td>
-  //       <td>
-  //         {Object.values(item.role_text).map((role, index) => {
-  //           return (
-  //             <span key={index} className="badge bg-success mx-1">
-  //               {role.substring(0, 50)}
-  //             </span>
-  //           );
-  //         })}
-  //       </td>
-  //       <td>{item.email}</td>
-  //       <td>{item.phone_number}</td>
-  //       <td>
-  //         <Link to="/users/create" className="btn btn-success">
-  //           Edit
-  //         </Link>
-  //       </td>
-  //       <td>
-  //         <Link to="/users/delete" className="btn btn-danger">
-  //           Delete
-  //         </Link>
-  //       </td>
-  //     </tr>
-  //   );
-  // });
-
   return (
-    <Paper sx={{ width: "100%", overflow: "hidden" }}>
-      <TableContainer sx={{ maxHeight: 600 }}>
-        <Table stickyHeader aria-label="sticky table">
-          <TableHead>
-            <TableRow>
-              {columns.map((column) => (
-                <TableCell
-                  key={column.id}
-                  align={column.align}
-                  style={{
-                    minWidth: column.minWidth,
-                    maxWidth: column.maxWidth,
-                  }}
-                >
-                  {column.label}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {users
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row) => {
-                return (
-                  <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
-                    {columns.map((column) => {
-                      const value = row[column.id];
-                      return (
-                        <TableCell key={column.id} align={column.align}>
-                          {column.format && typeof value === "number"
-                            ? column.format(value)
-                            : value}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                );
-              })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[25, 50, 100]}
-        component="div"
-        count={users.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
-    </Paper>
+    <>
+      <Snackbar open={createUser} autoHideDuration={2500} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="success" sx={{ width: "100%" }}>
+          Create user Success!
+        </Alert>
+      </Snackbar>
+      <Paper sx={{ width: "100%", overflow: "hidden" }}>
+        <Grid container justifyContent="flex-end" sx={{ my: 3, mr: 5 }}>
+          <Link to="/users/create">
+            <Button variant="contained">Add User</Button>
+          </Link>
+        </Grid>
+        <TableContainer sx={{ maxHeight: 600 }}>
+          <Table stickyHeader aria-label="sticky table">
+            <TableHead>
+              <TableRow>
+                {columns.map((column) => (
+                  <TableCell
+                    key={column.id}
+                    align={column.align}
+                    style={{
+                      minWidth: column.minWidth,
+                      maxWidth: column.maxWidth,
+                    }}
+                  >
+                    {column.label}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {users
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((row) => {
+                  return (
+                    <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
+                      {columns.map((column) => {
+                        const value = row[column.id];
+                        return (
+                          <TableCell key={column.id} align={column.align}>
+                            {column.format && typeof value === "number"
+                              ? column.format(value)
+                              : value}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  );
+                })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[10, 20, 50]}
+          component="div"
+          count={users.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </Paper>
+    </>
   );
 }
 

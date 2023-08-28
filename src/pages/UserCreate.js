@@ -1,6 +1,5 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-// import { Link } from "react-router-dom";
 import Loading from "../components/Loading";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
@@ -16,13 +15,23 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import Button from "@mui/material/Button";
+import { useNavigate } from "react-router-dom";
+import Alert from "@mui/material/Alert";
+import Snackbar from "@mui/material/Snackbar";
+import { Typography } from "@mui/material";
 
 function UserCreate() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState();
-  const [value, setValue] = useState([]);
+  const [name, setName] = useState();
+  const [password, setPassword] = useState();
+  const [status, setStatus] = useState([]);
+  const [roles, setRoles] = useState([]);
   const [email, setEmail] = useState();
-  const [status, setStatus] = useState([
+  const [joinDate, setJoinDate] = useState("2022-04-17");
+  const [error, setError] = useState("");
+
+  const [listStatus, setListStatus] = useState([
     { text: "Intern", value: 0 },
     { text: "Probation", value: 1 },
     { text: "Official", value: 2 },
@@ -30,13 +39,9 @@ function UserCreate() {
     { text: "Ex-Official", value: 4 },
     { text: "Rm-Official", value: 5 },
   ]);
-  const [selectedValue, setSelectedValue] = useState("a");
-  const [roles, setRoles] = useState();
-  const [joinDate, setJoinDate] = useState(dayjs());
+  const [listRoles, setListRoles] = useState();
+  const [open, setOpen] = useState(false);
 
-  const handleChange = (event) => {
-    setSelectedValue(event.target.value);
-  };
   useEffect(() => {
     axios
       .post(`http://127.0.0.1:8000/api/login`, {
@@ -60,29 +65,43 @@ function UserCreate() {
             value: role.id,
           };
         });
-        setRoles(roles);
+        setListRoles(roles);
         setLoading(false);
       });
   }, []);
 
-  // const handleInput2 = (e) => {
-  //   console.log(e.target.);
-  // };
+  const handleClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
 
-  const saveUser = (e) => {
-    e.preventDefault();
-    const data = {
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      company: user.company,
-    };
-
-    axios.post().then();
+    setOpen(false);
   };
 
-  const handleStatusChange = (event) => {
-    setValue(event.target.value);
+  const saveUser = () => {
+    const data = {
+      name,
+      email,
+      password,
+      status,
+      roles: roles.map((role) => role.value),
+      join_date: joinDate,
+    };
+    axios
+      .post(`http://127.0.0.1:8000/api/users`, data, {
+        headers: {
+          Authorization: `bearer ${localStorage.getItem("token")}`,
+        },
+      })
+      .then((res) => {
+        localStorage.setItem("create_user", true);
+        setOpen(true);
+        navigate("/users");
+      })
+      .catch((e) => {
+        setError(e.response.data.message);
+        setOpen(true);
+      });
   };
 
   if (loading) {
@@ -90,75 +109,95 @@ function UserCreate() {
   }
 
   return (
-    <Stack
-      component="form"
-      sx={{
-        mt: 5,
-        mx: "auto",
-        width: "75ch",
-      }}
-      spacing={2}
-      noValidate
-      autoComplete="off"
-    >
-      <TextField
-        id="name"
-        label="Name"
-        onChange={(event) => setUser(event.target.value)}
-        variant="outlined"
-      />
-      <TextField
-        id="email"
-        label="Email"
-        onChange={(event) => setEmail(event.target.value)}
-        variant="outlined"
-      />
-      <Autocomplete
-        multiple
-        id="tags-outlined"
-        options={roles}
-        onChange={(event, newValue) => {
-          setValue(newValue);
+    <>
+      <Snackbar open={open} autoHideDuration={2500} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="error" sx={{ width: "100%" }}>
+          {error}
+        </Alert>
+      </Snackbar>
+      <Stack
+        component="form"
+        sx={{
+          mt: 5,
+          mx: "auto",
+          width: "75ch",
         }}
-        renderInput={(params) => (
-          <TextField {...params} label="Role" placeholder="Choose roles" />
-        )}
-      />
+        spacing={2}
+        noValidate
+        autoComplete="off"
+      >
+        <Typography variant="h1" textAlign="center" gutterBottom>
+          Create User
+        </Typography>
+        <TextField
+          id="name"
+          label="Name"
+          onChange={(event) => setName(event.target.value)}
+          variant="outlined"
+        />
+        <TextField
+          id="email"
+          label="Email"
+          onChange={(event) => setEmail(event.target.value)}
+          variant="outlined"
+        />
 
-      <FormControl>
-        <FormLabel id="status">Status</FormLabel>
-        <RadioGroup
-          row
-          aria-labelledby="status"
-          name="user-status"
-          onChange={(event) => setValue(event.target.value)}
-        >
-          {status.map((item, index) => {
-            return (
-              <FormControlLabel
-                key={index}
-                value={item.value}
-                control={<Radio />}
-                label={item.text}
-              />
-            );
-          })}
-        </RadioGroup>
-      </FormControl>
+        <TextField
+          id="outlined-password-input"
+          label="Password"
+          type="password"
+          autoComplete="current-password"
+          onChange={(event) => setPassword(event.target.value)}
+        />
 
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <DemoContainer components={["DatePicker"]}>
-          <DatePicker
-            label="Join Date"
-            value={joinDate}
-            onChange={(newValue) => {
-              setJoinDate(newValue.format("YYYY-MM-DD"));
-            }}
-          />
-        </DemoContainer>
-      </LocalizationProvider>
-      <Button variant="contained">Save User</Button>
-    </Stack>
+        <Autocomplete
+          multiple
+          id="roles"
+          options={listRoles}
+          onChange={(event, newValue) => setRoles(newValue)}
+          renderInput={(params) => (
+            <TextField {...params} label="Role" placeholder="Choose roles" />
+          )}
+        />
+
+        <FormControl>
+          <FormLabel id="status">Status</FormLabel>
+          <RadioGroup
+            row
+            aria-labelledby="status"
+            name="user-status"
+            onChange={(event) => setStatus(event.target.value)}
+          >
+            {listStatus.map((item, index) => {
+              return (
+                <FormControlLabel
+                  key={index}
+                  value={item.value}
+                  control={<Radio />}
+                  label={item.text}
+                />
+              );
+            })}
+          </RadioGroup>
+        </FormControl>
+
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DemoContainer components={["DatePicker"]}>
+            <DatePicker
+              label="Join Date"
+              value={dayjs(joinDate)}
+              format="YYYY-MM-DD"
+              onChange={(newValue) =>
+                setJoinDate(newValue.format("YYYY-MM-DD"))
+              }
+            />
+          </DemoContainer>
+        </LocalizationProvider>
+        <Button variant="contained" onClick={() => saveUser()}>
+          Save User
+        </Button>
+      </Stack>
+    </>
   );
 }
 export default UserCreate;

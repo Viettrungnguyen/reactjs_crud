@@ -40,6 +40,11 @@ function Navbar() {
                 Users
               </Link>
             </li>
+            <li className="nav-item">
+              <Link className="nav-link" to="/test">
+                Test
+              </Link>
+            </li>
           </ul>
         </div>
       </div>
